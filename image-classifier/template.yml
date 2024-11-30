@@ -1,11 +1,26 @@
 
 provider:
   name: openfaas
-  gateway: http://127.0.0.1:8080
+  gateway: http://127.0.0.1:31112
 
 functions:
   image-classifier:
     lang:  python3-http-debian
     handler: ./function
-    image: leong589/testing:latest
-    
+    image: nsr201/image-classifier:latest
+    environment:
+      write_timeout: "600s"           
+      read_timeout: "600s"            
+      exec_timeout: "600s"            
+      function_timeout: "600s"        
+      upstream_timeout: "600s"        
+      http_upstream_timeout: "600s"
+      combine_output: false
+      write_debug: true
+    # Uncomment the following lines to limit the hardware resources
+    # limits:
+    #   memory: 4Gi      
+    #   cpu: 2500m       
+    # requests:
+    #   memory: 2Gi
+    #   cpu: 1500m 

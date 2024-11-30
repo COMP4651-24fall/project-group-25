@@ -81,4 +81,7 @@ def call_handler(path):
     return res
 
 if __name__ == '__main__':
-    serve(app, host='0.0.0.0', port=5000)
+    serve(app, host='0.0.0.0', port=8080, 
+          timeout=600,
+          cleanup_interval=600,
+          channel_timeout=600)

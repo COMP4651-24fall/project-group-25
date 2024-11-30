@@ -1,4 +1,4 @@
-ARG PYTHON_VERSION=3.12
+ARG PYTHON_VERSION=3.10
 ARG DEBIAN_OS=slim-bookworm
 
 
@@ -22,7 +22,7 @@ ENV HOME /home/app
 ENV PATH=$HOME/conda/bin:$PATH
 
 RUN curl -sSL https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -o /tmp/miniconda.sh \
-    && curl -sSL https://github.com/openfaas-incubator/of-watchdog/releases/download/0.5.1/of-watchdog > /usr/bin/fwatchdog \
+    # && curl -sSL https://github.com/openfaas-incubator/of-watchdog/releases/download/0.5.1/of-watchdog > /usr/bin/fwatchdog \
     && chmod 777 /tmp/miniconda.sh 
 
 
@@ -36,11 +36,20 @@ USER app
 ENV PATH=$PATH:/home/app/.local/bin
 #install conda
 RUN bash /tmp/miniconda.sh -bfp $HOME/conda \
-    && conda install -y python=3 \
+    && conda install -y python=3.10 \
     && conda install -y pytorch torchvision torchaudio cpuonly -c pytorch \
     && conda update conda \
     && conda clean --all --yes 
     
+
+# Cretea dataset folder
+RUN mkdir -p $HOME/function/core/dataset && \
+    chown app:app $HOME/function/core/dataset
+
+# Adjust some env variables
+ENV PYTHONUNBUFFERED=1
+ENV PATH=$PATH:/home/app/.local/bin
+ENV PYTORCH_CPU_ALLOC_CONF=max_split_size_mb:32
 
 WORKDIR /home/app/
 
@@ -59,6 +68,7 @@ RUN pip install --no-cache-dir --user -r requirements.txt
 
 USER root
 COPY --chown=app:app function/   .
+COPY --chown=app:app dataset/cifar-10-batches-py /home/app/function/core/dataset/cifar-10-batches-py
 
 FROM build AS test
 
@@ -76,7 +86,7 @@ USER app
 ENV fprocess="python index.py"
 ENV cgi_headers="true"
 ENV mode="http"
-ENV upstream_url="http://127.0.0.1:5000"
+ENV upstream_url="http://127.0.0.1:8080"
 
 HEALTHCHECK --interval=5s CMD [ -e /tmp/.lock ] || exit 1
 
