@@ -7,6 +7,7 @@ The report is in the root directory of the repository and is named `report.pdf`.
 ## Team members
 Name: Ngai Lai Yeung
 Email: lyngai@connect.ust.hk
+
 Name: Zhang Zi Di
 Email: zzhangcy@connect.ust.hk
 
@@ -15,10 +16,10 @@ The repository is a dockerfile that can be build by OpenFaaS to deploy a machine
 
 You can deploy the image to OpenFaaS by the following command:
 
-faas-cli deploy --image=leong589/testing:latest --name=model 
+`faas-cli deploy --image=leong589/testing:latest --name=model`
 
 Alternatively, you can edit the template.yml to change the name of the docker image and deploy it by OpenFaaS.
 
-faas-cli up -f template.yml 
+`faas-cli up -f template.yml`
 
 
