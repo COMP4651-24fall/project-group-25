@@ -3,27 +3,19 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from torch.utils.data import sampler
-
 import torchvision.datasets as dset
 import torchvision.transforms as T
 import torch.nn.functional as F 
 import sys
-
-
 import numpy as np
-NUM_TRAIN = 49000
+
+
+
+NUM_TRAIN = 49000 # The number of training images from the CIFAR-10 dataset
 print_every = 100
 USE_GPU = False
-dtype = torch.float32 # We will be using float throughout this tutorial.
-
-if USE_GPU and torch.cuda.is_available():
-    device = torch.device('cuda')
-else:
-    device = torch.device('cpu')
-
-# Constant to control how frequently we print train loss
-
-
+dtype = torch.float32 
+device = torch.device('cpu') # default to CPU
 
 # Load dataset
 transform = T.Compose([
@@ -49,21 +41,16 @@ cifar10_test = dset.CIFAR10('/home/app/function/core/dataset', train=False, down
 loader_test = DataLoader(cifar10_test, batch_size=64)
 
 
-
-
-#Model part
+# Flatten the data
 
 def flatten(x):
-    N = x.shape[0] # read in N, C, H, W
+    N = x.shape[0]
     return x.view(N, -1)
-
 class Flatten(nn.Module):
     def forward(self, x):
         return flatten(x)
         
-
-
-
+# Check accuracy
 def check_accuracy(loader, model):
     if loader.dataset.train:
         print('Checking accuracy on validation set')
@@ -71,10 +58,10 @@ def check_accuracy(loader, model):
         print('Checking accuracy on test set')
     num_correct = 0
     num_samples = 0
-    model.eval()  # set model to evaluation mode
+    model.eval() 
     with torch.no_grad():
         for x, y in loader:
-            x = x.to(device=device, dtype=dtype)  # move to device, e.g. GPU
+            x = x.to(device=device, dtype=dtype)
             y = y.to(device=device, dtype=torch.long)
             scores = model(x)
             _, preds = scores.max(1)
@@ -84,19 +71,8 @@ def check_accuracy(loader, model):
         print('Got %d / %d correct (%.2f)' % (num_correct, num_samples, 100 * acc))
     return acc
 
-
-
+# Train model
 def train(model, optimizer, epochs=1):
-    """
-    Train a model on CIFAR-10 using the PyTorch Module API.
-
-    Inputs:
-    - model: A PyTorch Module giving the model to train.
-    - optimizer: An Optimizer object we will use to train the model
-    - epochs: (Optional) A Python integer giving the number of epochs to train for
-
-    Returns: Nothing, but prints model accuracies during training.
-    """
     model = model.to(device=device)  # move the model parameters to CPU/GPU
     for e in range(epochs):
         for t, (x, y) in enumerate(loader_train):
@@ -109,9 +85,7 @@ def train(model, optimizer, epochs=1):
 
             optimizer.zero_grad()
 
-
             loss.backward()
-
 
             optimizer.step()
 
@@ -120,15 +94,13 @@ def train(model, optimizer, epochs=1):
                 check_accuracy(loader_val, model)
                 print()
                 
-                
+# Model  
 def mymodel():
-    
   
     channel_1 = 32
     channel_2 = 64
     learning_rate = 1e-2
-
-
+    
     model = nn.Sequential(
         nn.Conv2d(3, channel_1, 3, padding=2),
         nn.ReLU(),
@@ -148,6 +120,5 @@ def mymodel():
 
     optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9, nesterov=True)
     train(model, optimizer, epochs=3)
-    
     
     return check_accuracy(loader_test, model)
